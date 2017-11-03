@@ -1,6 +1,9 @@
-// Cryptone3.cpp : Defines the entry point for the console application.
+// 
+// https://github.com/oxfemale/Cryptone3/
+// twitter: @oxfemale
+// email: alice.eas7@gmail.com
+// telegram: @BelousovaAlisa
 //
-
 #include "stdafx.h"
 #include <tchar.h>
 #include <stdio.h>
@@ -8,7 +11,6 @@
 #include <wincrypt.h>
 #include <conio.h>
 
-//#define _DEBUG 1
 
 // Link with the Advapi32.lib file.
 #pragma comment (lib, "advapi32")
@@ -16,20 +18,6 @@
 #define KEYLENGTH  0x00800000
 #define ENCRYPT_ALGORITHM CALG_RC4 
 #define ENCRYPT_BLOCK_SIZE 8 
-/*
-bool MyEncryptFile(
-	LPTSTR szSource,
-	LPTSTR szDestination,
-	LPTSTR szPassword);
-
-bool MyDecryptFile(
-	LPTSTR szSource,
-	LPTSTR szDestination,
-	LPTSTR szPassword);
-	*/
-void MyHandleError(
-	LPTSTR psz,
-	int nErrorNumber);
 
 BOOL APIENTRY DllMain(HMODULE hModule,
 	DWORD  ul_reason_for_call,
@@ -47,44 +35,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	return TRUE;
 }
 
-
-/*
-int _tmain(int argc, TCHAR* argv[])
-{
-	if (argc < 4)
-	{
-		_tprintf(TEXT("Usage: encrypt <source file> <destination file> <password>\n"));
-		_tprintf(TEXT("Usage: decrypt <source file> <destination file> <password>\n"));
-		return 1;
-	}
-	LPTSTR todo = argv[1];
-	LPTSTR pszSource = argv[2];
-	LPTSTR pszDestination = argv[3];
-	LPTSTR pszPassword = argv[4];
-
-	if (todo[0] == 'e')
-	{				
-		if (MyEncryptFile(pszSource, pszDestination, pszPassword))
-		{
-			_tprintf(TEXT("Encryption of the file %s was successful. \n"), pszSource);
-			_tprintf(TEXT("The encrypted data is in file %s.\n"), pszDestination);
-		}
-		else MyHandleError(TEXT("Error Encrypting file!\n"), GetLastError());
-	}
-
-	if (todo[0] == 'd')
-	{
-		if (MyDecryptFile(pszSource, pszDestination, pszPassword))
-		{
-			_tprintf(TEXT("Encryption of the file %s was successful. \n"),pszSource);
-			_tprintf(TEXT("The encrypted data is in file %s.\n"),pszDestination);
-		}else MyHandleError(TEXT("Error Dencrypting file!\n"), GetLastError());
-	}
-
-
-	return 0;
-}
-*/
 
 extern "C" __declspec(dllexport) bool MyEncryptFile(
 	LPTSTR pszSourceFile,
@@ -107,9 +57,9 @@ extern "C" __declspec(dllexport) bool MyEncryptFile(
 	DWORD dwBlockLen;
 	DWORD dwBufferLen;
 	DWORD dwCount;
-	int cczp = 0;
 
-	#ifdef _DEBUG	
+
+	#ifdef _DEBUG
 	_tprintf(TEXT("MyEncryptFile() loaded:\n"));
 	_tprintf(TEXT("SourceFile: %s\nDestinationFile: %s\nPassword: %s\n"), pszSourceFile, pszDestinationFile, pszPassword);
 	#endif
@@ -126,7 +76,7 @@ extern "C" __declspec(dllexport) bool MyEncryptFile(
 	if (INVALID_HANDLE_VALUE == hSourceFile)
 	{
 		#ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error(%d):  Open the source file[%s]. //CreateFile()\n"), GetLastError(), pszSourceFile);
+		_tprintf(TEXT("Error(%d):  Open the source file[%s]. CreateFile()\n"), GetLastError(), pszSourceFile);
 		#endif
 		goto Exit_MyEncryptFile;
 	}
@@ -144,7 +94,7 @@ extern "C" __declspec(dllexport) bool MyEncryptFile(
 	if (INVALID_HANDLE_VALUE == hDestinationFile)
 	{
 #ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error: //hDestinationFile = CreateFile\n"));
+		_tprintf(TEXT("Error(%d): //hDestinationFile = CreateFile\n"), GetLastError());
 #endif
 		goto Exit_MyEncryptFile;
 	}
@@ -158,12 +108,14 @@ extern "C" __declspec(dllexport) bool MyEncryptFile(
 		PROV_RSA_FULL,
 		0))
 	{
-		cczp--;
+#ifdef _DEBUG	
+		_tprintf(TEXT("OK: Get the handle to the default provider. CryptAcquireContext()\n"));
+#endif
 	}
 	else
 	{
 #ifdef _DEBUG	
-_tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
+_tprintf(TEXT("Error(%d): Get the handle to the default provider. CryptAcquireContext()\n"), GetLastError());
 #endif
 		goto Exit_MyEncryptFile;
 	}
@@ -185,12 +137,14 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			KEYLENGTH | CRYPT_EXPORTABLE,
 			&hKey))
 		{
-			cczp++;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Create a random session key. CryptGenKey()\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //CryptGenKey()\n"));
+			_tprintf(TEXT("Error(%d): Create a random session key. CryptGenKey()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -202,7 +156,9 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			AT_KEYEXCHANGE,
 			&hXchgKey))
 		{
-			cczp--;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Get the handle to the exchange public key. CryptGetUserKey()\n"));
+#endif
 		}
 		else
 		{
@@ -216,7 +172,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 					&hXchgKey))
 				{
 #ifdef _DEBUG	
-					_tprintf(TEXT("!!!Error: //1NTE_NO_KEY == GetLastError()\n"));
+					_tprintf(TEXT("Error(%d): Get the handle to the exchange public key.\n"), GetLastError());
 #endif
 					goto Exit_MyEncryptFile;
 				}
@@ -224,7 +180,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			else
 			{
 #ifdef _DEBUG	
-				_tprintf(TEXT("!!!Error: //2NTE_NO_KEY == GetLastError()\n"));
+				_tprintf(TEXT("Error(%d): NTE_NO_KEY != GetLastError(), wtf\n"), GetLastError());
 #endif
 				goto Exit_MyEncryptFile;
 			}
@@ -240,24 +196,28 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			NULL,
 			&dwKeyBlobLen))
 		{
-			cczp++;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Determine size of the key BLOB, and allocate memory.  CryptExportKey()\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //CryptExportKey()\n"));
+			_tprintf(TEXT("Error(%d): Determine size of the key BLOB, and allocate memory. CryptExportKey()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
 
 		if (pbKeyBlob = (BYTE *)malloc(dwKeyBlobLen))
 		{
-			cczp--;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: malloc(dwKeyBlobLen)\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //malloc()\n"));
+			_tprintf(TEXT("Error(%d): malloc(dwKeyBlobLen)\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -273,12 +233,14 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			pbKeyBlob,
 			&dwKeyBlobLen))
 		{
-			cczp++;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Encrypt and export the session key into a simple key CryptExportKey()\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //2CryptExportKey()\n"));
+			_tprintf(TEXT("Error(%d):  Encrypt and export the session key into a simple key CryptExportKey()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -290,7 +252,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			if (!(CryptDestroyKey(hXchgKey)))
 			{
 #ifdef _DEBUG	
-				_tprintf(TEXT("!!!Error: //CryptDestroyKey()\n"));
+				_tprintf(TEXT("Error(%d): Release the key exchange key handle. CryptDestroyKey()\n"), GetLastError());
 #endif
 				goto Exit_MyEncryptFile;
 			}
@@ -308,7 +270,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: Write the size of the key BLOB to the destination file\n"));
+			_tprintf(TEXT("Error(%d): Write the size of the key BLOB to the destination file\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -323,7 +285,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: Write the key BLOB to the destination file.\n"));
+			_tprintf(TEXT("Error(%d): Write the key BLOB to the destination file.\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -350,12 +312,14 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			0,
 			&hHash))
 		{
-			cczp--;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Create a hash object. CryptCreateHash()\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //CryptCreateHash()\n"));
+			_tprintf(TEXT("Error(%d): Create a hash object. CryptCreateHash()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -368,12 +332,14 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			lstrlen(pszPassword),
 			0))
 		{
-			cczp--;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Hash the password.  CryptHashData()\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //CryptHashData()\n"));
+			_tprintf(TEXT("Error(%d): Hash the password.  CryptHashData()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -387,12 +353,14 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			KEYLENGTH,
 			&hKey))
 		{
-			cczp--;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Derive a session key from the hash object.  CryptDeriveKey()\n"));
+#endif
 		}
 		else
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //CryptDeriveKey()\n"));
+			_tprintf(TEXT("Error(%d): Derive a session key from the hash object.  CryptDeriveKey()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -425,19 +393,20 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 	// Allocate memory. 
 	if (pbBuffer = (BYTE *)malloc(dwBufferLen))
 	{
-		cczp--;
+#ifdef _DEBUG	
+		_tprintf(TEXT("OK: Allocate memory.  malloc(dwBufferLen)\n"));
+#endif
 	}
 	else
 	{
 #ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error: //2malloc()\n"));
+		_tprintf(TEXT("Error(%d):  Allocate memory. malloc(dwBufferLen)\n"), GetLastError());
 #endif
 		goto Exit_MyEncryptFile;
 	}
 
 	//---------------------------------------------------------------
-	// In a do loop, encrypt the source file, 
-	// and write to the source file. 
+	// In a do loop, encrypt the source file, and write to the source file. 
 	bool fEOF = FALSE;
 	do
 	{
@@ -449,7 +418,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //ReadFile() //bool fEOF = FALSE;\n"));
+			_tprintf(TEXT("Error(%d): In a do loop, encrypt the source file, and write to the source file. ReadFile()\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -471,7 +440,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			dwBufferLen))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: //CryptEncrypt\n"));
+			_tprintf(TEXT("Error(%d): Encrypt data.  CryptEncrypt\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -486,7 +455,7 @@ _tprintf(TEXT("!!!Error: //CryptAcquireContext()\n"));
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error: Write the encrypted data to the destination file.\n"));
+			_tprintf(TEXT("Error(%d): Write the encrypted data to the destination file.\n"), GetLastError());
 #endif
 			goto Exit_MyEncryptFile;
 		}
@@ -524,11 +493,7 @@ Exit_MyEncryptFile:
 	// Release the hash object. 
 	if (hHash)
 	{
-		if (!(CryptDestroyHash(hHash)))
-		{
-			cczp++;
-		}
-
+		CryptDestroyHash(hHash);
 		hHash = NULL;
 	}
 
@@ -536,20 +501,14 @@ Exit_MyEncryptFile:
 	// Release the session key. 
 	if (hKey)
 	{
-		if (!(CryptDestroyKey(hKey)))
-		{
-			cczp++;
-		}
+		CryptDestroyKey(hKey);
 	}
 
 	//---------------------------------------------------------------
 	// Release the provider handle. 
 	if (hCryptProv)
 	{
-		if (!(CryptReleaseContext(hCryptProv, 0)))
-		{
-			cczp++;
-		}
+		CryptReleaseContext(hCryptProv, 0);
 	}
 
 	return fReturn;
@@ -572,7 +531,6 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 	PBYTE pbBuffer = NULL;
 	DWORD dwBlockLen;
 	DWORD dwBufferLen;
-	int cczp = 0;
 
 #ifdef _DEBUG	
 	_tprintf(TEXT("MyDecryptFile() loaded:\n"));
@@ -591,7 +549,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 	if (INVALID_HANDLE_VALUE == hSourceFile)
 	{
 #ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error[%d]: Open the source file. CreateFile(%s)\n"),GetLastError(), pszSourceFile);
+		_tprintf(TEXT("Error[%d]: Open the source file. CreateFile(%s)\n"),GetLastError(), pszSourceFile);
 #endif
 		goto Exit_MyDecryptFile;
 	}
@@ -609,7 +567,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 	if (INVALID_HANDLE_VALUE == hDestinationFile)
 	{
 #ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error[%d]: Open the destination file. CreateFile(%s)\n"), GetLastError(), pszDestinationFile);
+		_tprintf(TEXT("Error[%d]: Open the destination file. CreateFile(%s)\n"), GetLastError(), pszDestinationFile);
 #endif
 		goto Exit_MyDecryptFile;
 	}
@@ -623,12 +581,14 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 		PROV_RSA_FULL,
 		0))
 	{
-		cczp++;
+#ifdef _DEBUG	
+		_tprintf(TEXT("OK: Get the handle to the default provider. CryptAcquireContext()\n"));
+#endif
 	}
 	else
 	{
 #ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error[%d] CryptAcquireContext\n"), GetLastError());
+		_tprintf(TEXT("Error[%d] Get the handle to the default provider. CryptAcquireContext\n"), GetLastError());
 #endif
 		goto Exit_MyDecryptFile;
 	}
@@ -651,7 +611,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Read the key BLOB length from the source file.  ReadFile()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Read the key BLOB length from the source file.  ReadFile()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -660,7 +620,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 		if (!(pbKeyBlob = (PBYTE)malloc(dwKeyBlobLen)))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Allocate a buffer for the key BLOB.  malloc()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Allocate a buffer for the key BLOB.  malloc()\n"), GetLastError());
 #endif
 			//MyHandleError(TEXT("Memory allocation error.\n"),E_OUTOFMEMORY);
 			goto Exit_MyDecryptFile;
@@ -677,7 +637,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Read the key BLOB from the source file.  ReadFile()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Read the key BLOB from the source file.  ReadFile()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -693,7 +653,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			&hKey))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Import the key BLOB into the CSP.  CryptImportKey()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Import the key BLOB into the CSP.  CryptImportKey()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -719,7 +679,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			&hHash))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Create a hash object.  CryptCreateHash()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Create a hash object.  CryptCreateHash()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -733,7 +693,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			0))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Hash in the password data.  CryptHashData()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Hash in the password data.  CryptHashData()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -748,7 +708,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			&hKey))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Derive a session key from the hash object.   CryptDeriveKey()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Derive a session key from the hash object.   CryptDeriveKey()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -772,7 +732,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 	if (!(pbBuffer = (PBYTE)malloc(dwBufferLen)))
 	{
 #ifdef _DEBUG	
-		_tprintf(TEXT("!!!Error[%d] Allocate memory for the file read buffer.  malloc()\n"), GetLastError());
+		_tprintf(TEXT("Error[%d] Allocate memory for the file read buffer.  malloc()\n"), GetLastError());
 #endif
 		goto Exit_MyDecryptFile;
 	}
@@ -793,7 +753,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			NULL))
 		{
 #ifdef _DEBUG	
-			_tprintf(TEXT("!!!Error[%d] Read up to dwBlockLen bytes from the source file.  ReadFile()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Read up to dwBlockLen bytes from the source file.  ReadFile()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -814,7 +774,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			&dwCount))
 		{
 #ifdef _DEBUG
-			_tprintf(TEXT("!!!Error[%d] Decrypt the block of data. CryptDecrypt()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Decrypt the block of data. CryptDecrypt()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -829,7 +789,7 @@ extern "C" __declspec(dllexport) bool MyDecryptFile(
 			NULL))
 		{
 #ifdef _DEBUG
-			_tprintf(TEXT("!!!Error[%d] Write the decrypted data to the destination file. WriteFile()\n"), GetLastError());
+			_tprintf(TEXT("Error[%d] Write the decrypted data to the destination file. WriteFile()\n"), GetLastError());
 #endif
 			goto Exit_MyDecryptFile;
 		}
@@ -869,7 +829,9 @@ Exit_MyDecryptFile:
 	{
 		if (!(CryptDestroyHash(hHash)))
 		{
-			cczp++;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Release the hash object.  CryptDestroyHash()\n"));
+#endif
 		}
 
 		hHash = NULL;
@@ -881,7 +843,9 @@ Exit_MyDecryptFile:
 	{
 		if (!(CryptDestroyKey(hKey)))
 		{
-			cczp++;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Release the session key.   CryptDestroyKey()\n"));
+#endif
 		}
 	}
 
@@ -891,7 +855,9 @@ Exit_MyDecryptFile:
 	{
 		if (!(CryptReleaseContext(hCryptProv, 0)))
 		{
-			cczp++;
+#ifdef _DEBUG	
+			_tprintf(TEXT("OK: Release the provider handle.  CryptReleaseContext()\n"));
+#endif
 		}
 	}
 
@@ -899,11 +865,3 @@ Exit_MyDecryptFile:
 }
 
 
-/*
-void MyHandleError(LPTSTR psz, int nErrorNumber)
-{
-	_ftprintf(stderr, TEXT("An error occurred in the program. \n"));
-	_ftprintf(stderr, TEXT("%s\n"), psz);
-	_ftprintf(stderr, TEXT("Error number %x.\n"), nErrorNumber);
-}
-*/
