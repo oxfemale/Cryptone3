@@ -1,6 +1,6 @@
 # Cryptone3
-This is crypto lib example for MSVC 15.
-After build we are got crypton3.dll
+Сrypto lib/dll example (MSVC) with encrypt algorithm RC4, and example exe to call crypto functions.
+
 
 crypton3.dll use 2 function for encript and dectryp:
 
