@@ -1,0 +1,2 @@
+Packer1.exe c D:\projects\crypt_puzzle_lib\Packer1\Release\IDAPRO68.rar D:\projects\crypt_puzzle_lib\Packer1\Release\IDAPRO68.crp password
+Packer1.exe u D:\projects\crypt_puzzle_lib\Packer1\Release\IDAPRO68.crp D:\projects\crypt_puzzle_lib\Packer1\Release\IDAPRO68_new.rar password
