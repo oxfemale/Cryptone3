@@ -1,6 +1,6 @@
 # Cryptone3
-Сrypto lib/dll example (MSVC) with encrypt algorithm RC4, and example exe to call crypto functions.
-
+Small DLL project for encrypt/decrypt (algorithm RC4) any files with a password with windows CSP + default key length. 
+MSVC++
 
 crypton3.dll use 2 function for encript and dectryp:
 
