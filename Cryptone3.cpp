@@ -36,6 +36,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 }
 
 
+
 extern "C" __declspec(dllexport) bool MyEncryptFile(
 	LPTSTR pszSourceFile,
 	LPTSTR pszDestinationFile,
