@@ -6,18 +6,13 @@ crypton3.dll use 2 function for encript and dectryp:
 
 //Encrypt file with Password 
 //If all ok, return true and false if no.
-bool MyEncryptFile(
-        LPTSTR pszSourceFile,
-        LPTSTR pszDestinationFile,
-        LPTSTR pszPassword);
+bool MyEncryptFile(LPTSTR pszSourceFile,LPTSTR pszDestinationFile,LPTSTR pszPassword);
 
 //Dencrypt file with Password 
 //If all ok, return true and false if no.
-bool MyDecryptFile(
-        LPTSTR pszSourceFile,
-        LPTSTR pszDestinationFile,
-        LPTSTR pszPassword);
- //-----------------------------------------------------------------------------------------
+bool MyDecryptFile(LPTSTR pszSourceFile,LPTSTR pszDestinationFile,LPTSTR pszPassword);
+	
+ 
  Example use:
 
 typedef BOOL ( *MyEncryptFileExp )( wchar_t*, wchar_t*, wchar_t* );
@@ -37,7 +32,8 @@ result = MyEncryptFile(payload_path, target_path, password);
 result = MyDecryptFile(payload_path, target_path, password);
 
 FreeLibrary(hModule);
- //-----------------------------------------------------------------------------------------
+ 
+ 
  twitter: @oxfemale
  telegram: @BelousovaAlisa
  email: alice.eas7@gmail.com
